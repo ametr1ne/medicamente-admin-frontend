@@ -1,3 +1,5 @@
+import { IService } from "./service.type";
+
 export interface IExpert {
   id: number;
 
@@ -12,4 +14,10 @@ export interface IExpert {
 
   tags?: string[];
   specializations?: string[];
+
+  services: IService[];
+}
+
+export interface IOverridedExpert extends Omit<IExpert, "id" | "services"> {
+  services: string[];
 }

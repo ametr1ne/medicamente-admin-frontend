@@ -16,7 +16,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import axios from "axios";
 import { MoreHorizontal } from "lucide-react";
+import { revalidatePath, revalidateTag } from "next/cache";
+import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { toast } from "sonner";
 
 // This type is used to define the shape of our data.
@@ -26,6 +29,22 @@ export const columns: ColumnDef<IService>[] = [
   {
     accessorKey: "id",
     header: "ID",
+  },
+  {
+    accessorKey: "icon",
+    header: "Icon",
+    cell: ({ row }) => {
+      const service = row.original;
+
+      return (
+        <Image
+          src={`${process.env.NEXT_PUBLIC_SERVER_URL}/services/${service.icon}`}
+          alt='icon'
+          width={30}
+          height={30}
+        />
+      );
+    },
   },
   {
     accessorKey: "name",
@@ -53,20 +72,37 @@ export const columns: ColumnDef<IService>[] = [
     cell: ({ row }) => {
       const service = row.original;
 
-      const queryClient = useQueryClient();
+      // const queryClient = useQueryClient();
 
-      const { mutate } = useMutation({
-        mutationFn: () => servicesService.delete(service.id),
-        onSuccess(data) {
-          toast.success("Service successfully deleted");
-          queryClient.setQueryData(["services"], data);
-        },
-        onError(e) {
+      // const { mutate } = useMutation({
+      //   mutationFn: () => servicesService.delete(service.id),
+      //   onSuccess(data) {
+      //     toast.success("Service successfully deleted");
+      //     queryClient.setQueryData(["services", service.id], data);
+      //   },
+      //   onError(e) {
+      //     if (axios.isAxiosError(e)) {
+      //       toast.error(e.response?.data.message);
+      //     }
+      //   },
+      // });
+
+      const deleteService = async () => {
+        try {
+          const data = await servicesService.delete(service.id);
+
+          if (data.success) {
+            toast.success("Service successfully deleted");
+            revalidatePath("/services");
+            redirect("/services");
+            // revalidateTag("services");
+          }
+        } catch (e) {
           if (axios.isAxiosError(e)) {
             toast.error(e.response?.data.message);
           }
-        },
-      });
+        }
+      };
 
       return (
         <DropdownMenu>
@@ -83,7 +119,7 @@ export const columns: ColumnDef<IService>[] = [
               <DropdownMenuItem className='cursor-pointer'>Edit</DropdownMenuItem>
             </Link>
 
-            <DropdownMenuItem className='cursor-pointer' onClick={() => mutate()}>
+            <DropdownMenuItem className='cursor-pointer' onClick={() => deleteService()}>
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

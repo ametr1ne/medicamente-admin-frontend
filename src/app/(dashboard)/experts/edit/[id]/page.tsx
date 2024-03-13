@@ -31,7 +31,16 @@ const EditPage = ({ params }: { params: { id: string } }) => {
       </div>
       <Separator className='mb-10' />
 
-      {data ? <UpdateExpertForm prefetchedData={data} /> : <p>Loading...</p>}
+      {data ? (
+        <UpdateExpertForm
+          prefetchedData={{
+            ...data,
+            services: data.services.map(item => ({ label: item.name, value: item.id.toString() })),
+          }}
+        />
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };

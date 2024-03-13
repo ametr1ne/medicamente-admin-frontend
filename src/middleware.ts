@@ -9,7 +9,7 @@ export const middleware = async (req: NextRequest) => {
     privateRoutes.some(path => pathname.startsWith(path)) || pathname == paths.HOME;
 
   if (isProtectedPath && !user) {
-    return NextResponse.redirect(new URL(paths.PERMISSION_DENIED, req.url));
+    return NextResponse.redirect(new URL(paths.LOGIN, req.url));
   }
 
   if (pathname === paths.LOGIN && user) {

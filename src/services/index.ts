@@ -12,9 +12,9 @@ const host = axios.create({
 
 const protectedHost = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 protectedHost.interceptors.request.use(config => {

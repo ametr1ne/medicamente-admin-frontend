@@ -31,7 +31,20 @@ const UpdatePage = ({ params }: { params: { id: string } }) => {
       </div>
       <Separator className='mb-10' />
 
-      {data ? <UpdateServiceForm prefetchedData={data} /> : <p>Loading...</p>}
+      {data ? (
+        <UpdateServiceForm
+          prefetchedData={{
+            ...data,
+            prices: data.prices.map(item => ({ label: item.name, value: item.id.toString() })),
+            specialists: data.specialists.map(item => ({
+              label: `${item.firstName} ${item.lastName}`,
+              value: item.id.toString(),
+            })),
+          }}
+        />
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };

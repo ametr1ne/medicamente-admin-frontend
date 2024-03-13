@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 
 const formSchema = z.object({
-  name: z.string().min(3).max(50),
+  name: z.string().min(3).max(150),
   price: z.coerce.number(),
   oldPrice: z.coerce.number().optional(),
 });

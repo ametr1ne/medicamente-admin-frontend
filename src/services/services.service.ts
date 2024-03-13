@@ -1,8 +1,9 @@
-import { IService } from "@/types/service.type";
+import { IService, TOverridedService } from "@/types/service.type";
 import { host, protectedHost } from ".";
+import { unstable_noStore as noStore } from "next/cache";
 
 export const servicesService = {
-  async create(body: Omit<IService, "id" | "published">) {
+  async create(body: FormData) {
     try {
       const { data } = await protectedHost.post<IService>(`/service`, body);
 
@@ -11,7 +12,7 @@ export const servicesService = {
       throw e;
     }
   },
-  async update(body: Partial<Omit<IService, "id" | "published">>, id: number) {
+  async update(body: FormData, id: number) {
     try {
       const { data } = await protectedHost.patch<IService>(`/service/${id}`, body);
       return data;
@@ -20,9 +21,14 @@ export const servicesService = {
     }
   },
   async getAll() {
+    // noStore();
     try {
-      const { data } = await host.get<IService[]>(`/service`);
-      return data;
+      // const { data } = await host.get<IService[]>(`/service`);
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + "/service", {
+        cache: "no-store",
+      });
+      const data = await response.json();
+      return data as IService[];
     } catch (e) {
       console.error(e);
     }

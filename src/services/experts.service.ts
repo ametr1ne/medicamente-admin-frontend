@@ -1,8 +1,8 @@
 import { host, protectedHost } from ".";
-import { IExpert } from "@/types/expert.type";
+import { IExpert, IOverridedExpert } from "@/types/expert.type";
 
 export const expertsService = {
-  async create(body: Omit<IExpert, "id">) {
+  async create(body: FormData) {
     try {
       const { data } = await protectedHost.post<IExpert>(`/expert`, body);
 
@@ -11,7 +11,7 @@ export const expertsService = {
       throw e;
     }
   },
-  async update(body: Partial<Omit<IExpert, "id">>, id: number) {
+  async update(body: FormData, id: number) {
     try {
       const { data } = await protectedHost.patch<IExpert>(`/expert/${id}`, body);
       return data;

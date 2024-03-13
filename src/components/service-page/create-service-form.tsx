@@ -1,37 +1,39 @@
 "use client";
 
 import { paths } from "@/lib/routes";
+import { expertsService } from "@/services/experts.service";
+import { pricesService } from "@/services/prices.service";
 import { servicesService } from "@/services/services.service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { IService } from "@/types/service.type";
-import { Upload } from "lucide-react";
+import { OptionType } from "../ui/multi-select";
+import ServiceForm from "./service-form";
 
-const formSchema = z.object({
+export const formSchema = z.object({
   name: z.string().min(3).max(50),
   shortDescription: z.string().max(150),
   longDescription: z.string(),
   slug: z.string().min(2),
-  icon: z.any(),
+  prices: z.array(z.object({ label: z.string(), value: z.string() })),
+  specialists: z.array(z.object({ label: z.string(), value: z.string() })),
+  icon: z.any().optional(),
+  bannerImage: z.any().optional(),
+  bannerText: z.string(),
 });
 
 const CreateServiceForm = () => {
+  const [modificatedPrices, setModificatedPrices] = useState<OptionType[]>([]);
+  const [modificatedSpecs, setModificatedSpecs] = useState<OptionType[]>([]);
+
+  const [iconPreview, setIconPreview] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<File | null>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,6 +41,8 @@ const CreateServiceForm = () => {
       slug: "",
       shortDescription: "",
       longDescription: "",
+      prices: [],
+      specialists: [],
     },
   });
 
@@ -46,111 +50,84 @@ const CreateServiceForm = () => {
   const { push } = useRouter();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (values: Omit<IService, "id" | "published">) => servicesService.create(values),
+    mutationFn: (values: FormData) => servicesService.create(values),
     onSuccess(data) {
+      console.log(data);
+
       toast.success("New service was created successfully");
       queryClient.setQueryData(["services", data?.id], data);
       push(paths.SERVICES);
     },
     onError(e) {
+      console.log(e);
+
       if (axios.isAxiosError(e)) {
         toast.error(e.response?.data.message);
       }
     },
   });
 
+  const { data: prices, isSuccess } = useQuery({
+    queryKey: ["prices"],
+    queryFn: () => pricesService.getAll(),
+  });
+
+  const { data: specialists, isSuccess: specsIsSuccess } = useQuery({
+    queryKey: ["specialists"],
+    queryFn: () => expertsService.getAll(),
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    mutate(values);
+    const formattedPrices: string[] = values.prices.map(item => item.value);
+    const formattedSpecs: string[] = values.specialists.map(item => item.value);
+
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("shortDescription", values.shortDescription);
+    formData.append("longDescription", values.longDescription);
+    formData.append("slug", values.slug);
+    formData.append("icon", values.icon[0]);
+    formData.append("bannerImage", values.bannerImage[0]);
+    formData.append("bannerText", values.bannerText);
+    formData.append("prices", JSON.stringify(formattedPrices));
+    formData.append("specialists", JSON.stringify(formattedSpecs));
+
+    mutate(formData);
   }
 
+  useEffect(() => {
+    if (isSuccess && prices) {
+      const array: OptionType[] = prices.map(item => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+      setModificatedPrices(array);
+    }
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (isSuccess && specialists) {
+      const array: OptionType[] = specialists.map(item => ({
+        label: `${item.firstName} ${item.lastName}`,
+        value: item.id.toString(),
+      }));
+
+      setModificatedSpecs(array);
+    }
+  }, [specsIsSuccess]);
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-3 sm:w-full sm:max-w-3xl'>
-        <div className='flex gap-3'>
-          <div className='w-full'>
-            <FormField
-              control={form.control}
-              name='name'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Название услуги</FormLabel>
-                  <FormControl>
-                    <Input placeholder='Название услуги' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='slug'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder='slug' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name='icon'
-            render={({ field }) => (
-              <FormItem className='max-w-sm w-full mx-auto overflow-hidden items-center'>
-                <FormLabel>Иконка</FormLabel>
-                <div
-                  id='image-preview'
-                  className='max-w-sm p-6 mb-4 bg-gray-100 border-dashed border-2 border-gray-400 rounded-lg items-center mx-auto text-center cursor-pointer'>
-                  <Input id='upload' type='file' className='hidden' accept='image/*' {...field} />
-                  <label htmlFor='upload' className='cursor-pointer'>
-                    <Upload className='mx-auto mb-2' />
-                    <h5 className='mb-2 text-xl font-bold tracking-tight text-gray-700'>
-                      Upload picture
-                    </h5>
-
-                    <span id='filename' className='text-gray-500 bg-gray-200 z-50'></span>
-                  </label>
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name='shortDescription'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Краткое описание</FormLabel>
-              <FormControl>
-                <Textarea placeholder='Краткое описание...' className='resize-none' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='longDescription'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Описание</FormLabel>
-              <FormControl>
-                <Textarea placeholder='Описание...' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button disabled={isPending} className='mt-3' type='submit'>
-          Создать
-        </Button>
-      </form>
-    </Form>
+    <ServiceForm
+      form={form}
+      modificatedPrices={modificatedPrices}
+      modificatedSpecs={modificatedSpecs}
+      iconPreview={iconPreview}
+      setIconPreview={setIconPreview}
+      onSubmit={onSubmit}
+      isPending={isPending}
+      bannerPreview={bannerPreview}
+      setBannerPreview={setBannerPreview}
+    />
   );
 };
 
