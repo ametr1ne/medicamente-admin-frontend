@@ -17,11 +17,30 @@ import axios from "axios";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import Image from "next/image";
+import ExpertActionsCell from "./actions-cell";
 
 export const columns: ColumnDef<IExpert>[] = [
   {
     accessorKey: "id",
     header: "ID",
+  },
+  {
+    accessorKey: "photo",
+    header: "Photo",
+    cell: ({ row }) => {
+      const expert = row.original;
+
+      return (
+        <Image
+          src={`${process.env.NEXT_PUBLIC_SERVER_URL}/experts/${expert.photo}`}
+          alt='photo'
+          width={100}
+          height={100}
+          className='w-10 h-10 object-cover'
+        />
+      );
+    },
   },
   {
     accessorKey: "firstName",
@@ -46,44 +65,9 @@ export const columns: ColumnDef<IExpert>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const service = row.original;
+      const expert = row.original;
 
-      const queryClient = useQueryClient();
-
-      const { mutate } = useMutation({
-        mutationFn: () => expertsService.delete(service.id),
-        onSuccess(data) {
-          toast.success("Expert successfully deleted");
-          queryClient.setQueryData(["experts"], data);
-        },
-        onError(e) {
-          if (axios.isAxiosError(e)) {
-            toast.error(e.response?.data.message);
-          }
-        },
-      });
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-            <Link href={paths.EXPERTS + "/edit/" + service.id}>
-              <DropdownMenuItem className='cursor-pointer'>Edit</DropdownMenuItem>
-            </Link>
-
-            <DropdownMenuItem className='cursor-pointer' onClick={() => mutate()}>
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      return <ExpertActionsCell expert={expert} />;
     },
   },
 ];

@@ -1,11 +1,23 @@
-import { IService, TOverridedService } from "@/types/service.type";
+import { IService } from "@/types/service.type";
 import { host, protectedHost } from ".";
-import { unstable_noStore as noStore } from "next/cache";
+
+export const getAllServices = async () => {
+  try {
+    const { data } = await host.get<IService[]>(`/service`);
+    return data;
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 export const servicesService = {
   async create(body: FormData) {
     try {
-      const { data } = await protectedHost.post<IService>(`/service`, body);
+      const { data } = await protectedHost.post<IService>(`/service`, body, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       return data;
     } catch (e) {
@@ -14,23 +26,14 @@ export const servicesService = {
   },
   async update(body: FormData, id: number) {
     try {
-      const { data } = await protectedHost.patch<IService>(`/service/${id}`, body);
+      const { data } = await protectedHost.patch<IService>(`/service/${id}`, body, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return data;
     } catch (e) {
       throw e;
-    }
-  },
-  async getAll() {
-    // noStore();
-    try {
-      // const { data } = await host.get<IService[]>(`/service`);
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + "/service", {
-        cache: "no-store",
-      });
-      const data = await response.json();
-      return data as IService[];
-    } catch (e) {
-      console.error(e);
     }
   },
   async getOneById(id: number) {
@@ -54,7 +57,6 @@ export const servicesService = {
   async delete(id: number) {
     try {
       const { data } = await protectedHost.delete(`/service/${id}`);
-
       return data;
     } catch (e) {
       throw e;

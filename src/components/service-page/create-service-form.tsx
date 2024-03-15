@@ -14,18 +14,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { OptionType } from "../ui/multi-select";
 import ServiceForm from "./service-form";
-
-export const formSchema = z.object({
-  name: z.string().min(3).max(50),
-  shortDescription: z.string().max(150),
-  longDescription: z.string(),
-  slug: z.string().min(2),
-  prices: z.array(z.object({ label: z.string(), value: z.string() })),
-  specialists: z.array(z.object({ label: z.string(), value: z.string() })),
-  icon: z.any().optional(),
-  bannerImage: z.any().optional(),
-  bannerText: z.string(),
-});
+import { formSchema } from "./service-form";
 
 const CreateServiceForm = () => {
   const [modificatedPrices, setModificatedPrices] = useState<OptionType[]>([]);
@@ -86,9 +75,9 @@ const CreateServiceForm = () => {
     formData.append("shortDescription", values.shortDescription);
     formData.append("longDescription", values.longDescription);
     formData.append("slug", values.slug);
-    formData.append("icon", values.icon[0]);
-    formData.append("bannerImage", values.bannerImage[0]);
-    formData.append("bannerText", values.bannerText);
+    values.icon && formData.append("icon", values.icon[0]);
+    values.bannerImage && formData.append("bannerImage", values.bannerImage[0]);
+    values.bannerText && formData.append("bannerText", values.bannerText);
     formData.append("prices", JSON.stringify(formattedPrices));
     formData.append("specialists", JSON.stringify(formattedSpecs));
 

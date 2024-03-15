@@ -9,9 +9,21 @@ import { MultiSelect, OptionType } from "@/components/ui/multi-select";
 import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { formSchema } from "./update-expert-form";
 import Image from "next/image";
 import { Dispatch, SetStateAction } from "react";
+
+export const formSchema = z.object({
+  firstName: z.string().min(3).max(50),
+  lastName: z.string().min(3).max(50),
+  middleName: z.string().min(3).max(50).optional(),
+  experienceInYears: z.coerce.number().optional(),
+  rank: z.coerce.number().optional(),
+  slug: z.string().min(2),
+  tags: z.array(z.object({ number: z.string() })).optional(),
+  specializations: z.array(z.object({ number: z.string() })).optional(),
+  services: z.array(z.object({ label: z.string(), value: z.string() })),
+  photo: z.any().optional(),
+});
 
 type Props = {
   form: UseFormReturn<z.infer<typeof formSchema>>;

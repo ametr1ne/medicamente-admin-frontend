@@ -4,7 +4,11 @@ import { IExpert, IOverridedExpert } from "@/types/expert.type";
 export const expertsService = {
   async create(body: FormData) {
     try {
-      const { data } = await protectedHost.post<IExpert>(`/expert`, body);
+      const { data } = await protectedHost.post<IExpert>(`/expert`, body, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       return data;
     } catch (e) {
@@ -13,7 +17,11 @@ export const expertsService = {
   },
   async update(body: FormData, id: number) {
     try {
-      const { data } = await protectedHost.patch<IExpert>(`/expert/${id}`, body);
+      const { data } = await protectedHost.patch<IExpert>(`/expert/${id}`, body, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return data;
     } catch (e) {
       throw e;

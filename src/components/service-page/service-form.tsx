@@ -3,7 +3,6 @@
 import { Upload } from "lucide-react";
 import { UseFormReturn, UseFieldArrayReturn } from "react-hook-form";
 import { z } from "zod";
-import { formSchema } from "./create-service-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -33,6 +32,18 @@ type Props = {
   prefetchedBannerImage?: string;
   submitText?: string;
 };
+
+export const formSchema = z.object({
+  name: z.string().min(3).max(50),
+  shortDescription: z.string().max(150),
+  longDescription: z.string(),
+  slug: z.string().min(2),
+  prices: z.array(z.object({ label: z.string(), value: z.string() })),
+  specialists: z.array(z.object({ label: z.string(), value: z.string() })),
+  icon: z.any().optional(),
+  bannerImage: z.any().optional(),
+  bannerText: z.string().optional(),
+});
 
 const ServiceForm = ({
   form,
@@ -153,17 +164,17 @@ const ServiceForm = ({
               <label htmlFor='bannerUpload' className='cursor-pointer'>
                 {bannerPreview ? (
                   <Image
-                    className='w-16 h-16 object-contain mx-auto mb-2 z-10'
-                    width='30'
-                    height='30'
+                    className='w-52 h-32 object-contain mx-auto mb-2 z-10'
+                    width='500'
+                    height='500'
                     src={URL.createObjectURL(bannerPreview)}
                     alt='icon'
                   />
                 ) : prefetchedBannerImage ? (
                   <Image
-                    className='w-16 h-16 object-contain mx-auto mb-2 z-10'
-                    width='30'
-                    height='30'
+                    className='w-52 h-32 object-contain mx-auto mb-2 z-10'
+                    width='500'
+                    height='500'
                     src={`${process.env.NEXT_PUBLIC_SERVER_URL}/services/${prefetchedBannerImage}`}
                     alt='icon'
                   />

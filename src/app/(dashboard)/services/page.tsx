@@ -1,25 +1,21 @@
-// "use client";
+"use client";
 
 import PageHeader from "@/components/page-header";
 import PageTitle from "@/components/page-title";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import { paths } from "@/lib/routes";
-import { servicesService } from "@/services/services.service";
+import { getAllServices } from "@/services/services.service";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { DataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
 
-const ServicesPage = async () => {
-  // const { data, isLoading } = useQuery({
-  //   queryKey: ["services"],
-  //   queryFn: () => servicesService.getAll(),
-  // });
-
-  const data = await servicesService.getAll();
-
-  console.log(data);
+const ServicesPage = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ["services"],
+    queryFn: getAllServices,
+  });
 
   return (
     <>
@@ -33,7 +29,7 @@ const ServicesPage = async () => {
           </Button>
         </Link>
       </PageHeader>
-      {/* {isLoading && <p>Loading...</p>} */}
+      {isLoading && <p>Loading...</p>}
       {data && <DataTable columns={columns} data={data} />}
     </>
   );

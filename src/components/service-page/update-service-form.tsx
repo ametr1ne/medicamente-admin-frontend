@@ -1,3 +1,5 @@
+"use client";
+
 import { OptionType } from "@/components/ui/multi-select";
 import { paths } from "@/lib/routes";
 import { expertsService } from "@/services/experts.service";
@@ -12,19 +14,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import ServiceForm from "./service-form";
-
-const formSchema = z.object({
-  name: z.string().min(3).max(50),
-  shortDescription: z.string().max(150),
-  longDescription: z.string(),
-  slug: z.string().min(2),
-  prices: z.array(z.object({ label: z.string(), value: z.string() })),
-  specialists: z.array(z.object({ label: z.string(), value: z.string() })),
-  icon: z.any().optional(),
-  bannerImage: z.any().optional(),
-  bannerText: z.string(),
-});
+import ServiceForm, { formSchema } from "./service-form";
 
 interface IFormattedServiceData extends Omit<IService, "prices" | "specialists"> {
   prices: OptionType[];
@@ -59,8 +49,8 @@ const UpdateServiceForm = ({ prefetchedData }: { prefetchedData: IFormattedServi
   const { mutate, isPending } = useMutation({
     mutationFn: (values: FormData) => servicesService.update(values, prefetchedData.id),
     onSuccess(data) {
-      toast.success("Service was updated successfully");
-      queryClient.setQueryData(["services", data.id], data);
+      toast.success(`Service ${data.name} was updated successfully`);
+      queryClient.invalidateQueries({ queryKey: ["services"] });
       push(paths.SERVICES);
     },
     onError(e) {
@@ -81,7 +71,7 @@ const UpdateServiceForm = ({ prefetchedData }: { prefetchedData: IFormattedServi
     formData.append("slug", values.slug);
     values.icon && formData.append("icon", values.icon[0]);
     values.bannerImage && formData.append("bannerImage", values.bannerImage[0]);
-    formData.append("bannerText", values.bannerText);
+    values.bannerText && formData.append("bannerText", values.bannerText);
     formData.append("prices", JSON.stringify(formattedPrices));
     formData.append("specialists", JSON.stringify(formattedSpecs));
 

@@ -17,6 +17,7 @@ import axios from "axios";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import PriceActionsCell from "./actions-cell";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -43,41 +44,8 @@ export const columns: ColumnDef<IPrice>[] = [
     cell: ({ row }) => {
       const priceItem = row.original;
 
-      const queryClient = useQueryClient();
-
-      const { mutate } = useMutation({
-        mutationFn: () => pricesService.delete(priceItem.id),
-        onSuccess(data) {
-          toast.success("Price successfully deleted");
-          queryClient.setQueryData(["prices"], data);
-        },
-        onError(e) {
-          if (axios.isAxiosError(e)) {
-            toast.error(e.response?.data.message);
-          }
-        },
-      });
-
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-            <Link href={paths.PRICES + "/edit/" + priceItem.id}>
-              <DropdownMenuItem className='cursor-pointer'>Edit</DropdownMenuItem>
-            </Link>
-
-            <DropdownMenuItem className='cursor-pointer' onClick={() => mutate()}>
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <PriceActionsCell price={priceItem} />
       );
     },
   },

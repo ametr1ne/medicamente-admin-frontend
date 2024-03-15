@@ -2,31 +2,17 @@
 
 import { paths } from "@/lib/routes";
 import { expertsService } from "@/services/experts.service";
-import { IOverridedExpert } from "@/types/expert.type";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-import { servicesService } from "@/services/services.service";
+import { getAllServices } from "@/services/services.service";
+import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import ExpertForm from "./expert-form";
-import { useState } from "react";
-
-const formSchema = z.object({
-  firstName: z.string().min(3).max(50),
-  lastName: z.string().min(3).max(50),
-  middleName: z.string().min(3).max(50).optional(),
-  experienceInYears: z.coerce.number().optional(),
-  rank: z.coerce.number().optional(),
-  slug: z.string().min(2),
-  tags: z.array(z.object({ number: z.string() })).optional(),
-  specializations: z.array(z.object({ number: z.string() })).optional(),
-  services: z.array(z.object({ label: z.string(), value: z.string() })),
-  photo: z.any().optional(),
-});
+import ExpertForm, { formSchema } from "./expert-form";
 
 const CreateExpertForm = () => {
   const [photoPreview, setPhotoPreview] = useState<File | null>(null);
@@ -87,7 +73,7 @@ const CreateExpertForm = () => {
 
   const { data: services } = useQuery({
     queryKey: ["services"],
-    queryFn: () => servicesService.getAll(),
+    queryFn: () => getAllServices(),
   });
 
   const tagsFieldArray = useFieldArray({

@@ -4,9 +4,9 @@ import StatsCard from "@/components/home-page/stats-card";
 import { paths } from "@/lib/routes";
 import { expertsService } from "@/services/experts.service";
 import { pricesService } from "@/services/prices.service";
-import { servicesService } from "@/services/services.service";
+import { getAllServices } from "@/services/services.service";
 import { useQueries } from "@tanstack/react-query";
-import { Syringe, DollarSign, Users } from "lucide-react";
+import { DollarSign, Syringe, Users } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
@@ -14,7 +14,7 @@ export default function Home() {
     queries: [
       {
         queryKey: ["services"],
-        queryFn: () => servicesService.getAll(),
+        queryFn: () => getAllServices(),
       },
       {
         queryKey: ["prices"],
